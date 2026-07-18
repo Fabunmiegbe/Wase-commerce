@@ -1,63 +1,38 @@
-# Custom CLI Script
+# Custom scheduled jobs
 
-A custom CLI script is a function to execute through Medusa's CLI tool. This is useful when creating custom Medusa tooling to run as a CLI tool.
+A scheduled job is a function executed at a specified interval of time in the background of your Medusa application.
 
-> Learn more about custom CLI scripts in [this documentation](https://docs.medusajs.com/learn/fundamentals/custom-cli-scripts).
+> Learn more about scheduled jobs in [this documentation](https://docs.medusajs.com/learn/fundamentals/scheduled-jobs).
 
-## How to Create a Custom CLI Script?
+A scheduled job is created in a TypeScript or JavaScript file under the `src/jobs` directory.
 
-To create a custom CLI script, create a TypeScript or JavaScript file under the `src/scripts` directory. The file must default export a function.
-
-For example, create the file `src/scripts/my-script.ts` with the following content:
-
-```ts title="src/scripts/my-script.ts"
-import { 
-  ExecArgs,
-} from "@medusajs/framework/types"
-
-export default async function myScript ({
-  container
-}: ExecArgs) {
-  const productModuleService = container.resolve("product")
-
-  const [, count] = await productModuleService.listAndCountProducts()
-
-  console.log(`You have ${count} product(s)`)
-}
-```
-
-The function receives as a parameter an object having a `container` property, which is an instance of the Medusa Container. Use it to resolve resources in your Medusa application.
-
----
-
-## How to Run Custom CLI Script?
-
-To run the custom CLI script, run the `exec` command:
-
-```bash
-npx medusa exec ./src/scripts/my-script.ts
-```
-
----
-
-## Custom CLI Script Arguments
-
-Your script can accept arguments from the command line. Arguments are passed to the function's object parameter in the `args` property.
-
-For example:
+For example, create the file `src/jobs/hello-world.ts` with the following content:
 
 ```ts
-import { ExecArgs } from "@medusajs/framework/types"
+import {
+  MedusaContainer
+} from "@medusajs/framework/types";
 
-export default async function myScript ({
-  args
-}: ExecArgs) {
-  console.log(`The arguments you passed: ${args}`)
+export default async function myCustomJob(container: MedusaContainer) {
+  const productService = container.resolve("product")
+
+  const products = await productService.listAndCountProducts();
+
+  // Do something with the products
 }
+
+export const config = {
+  name: "daily-product-report",
+  schedule: "0 0 * * *", // Every day at midnight
+};
 ```
 
-Then, pass the arguments in the `exec` command after the file path:
+A scheduled job file must export:
 
-```bash
-npx medusa exec ./src/scripts/my-script.ts arg1 arg2
-```
+- The function to be executed whenever it’s time to run the scheduled job.
+- A configuration object defining the job. It has three properties:
+  - `name`: a unique name for the job.
+  - `schedule`: a [cron expression](https://crontab.guru/).
+  - `numberOfExecutions`: an optional integer, specifying how many times the job will execute before being removed
+
+The `handler` is a function that accepts one parameter, `container`, which is a `MedusaContainer` instance used to resolve services.
