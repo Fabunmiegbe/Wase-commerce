@@ -1,58 +1,63 @@
-# Admin Customizations Translations
+# Custom CLI Script
 
-The Medusa Admin dashboard supports multiple languages for its interface. Medusa uses [react-i18next](https://react.i18next.com/) to manage translations in the admin dashboard.
+A custom CLI script is a function to execute through Medusa's CLI tool. This is useful when creating custom Medusa tooling to run as a CLI tool.
 
-To add translations, create JSON translation files for each language under the `src/admin/i18n/json` directory. For example, create the `src/admin/i18n/json/en.json` file with the following content:
+> Learn more about custom CLI scripts in [this documentation](https://docs.medusajs.com/learn/fundamentals/custom-cli-scripts).
 
-```json
-{
-  "brands": {
-    "title": "Brands",
-    "description": "Manage your product brands"
-  },
-  "done": "Done"
+## How to Create a Custom CLI Script?
+
+To create a custom CLI script, create a TypeScript or JavaScript file under the `src/scripts` directory. The file must default export a function.
+
+For example, create the file `src/scripts/my-script.ts` with the following content:
+
+```ts title="src/scripts/my-script.ts"
+import { 
+  ExecArgs,
+} from "@medusajs/framework/types"
+
+export default async function myScript ({
+  container
+}: ExecArgs) {
+  const productModuleService = container.resolve("product")
+
+  const [, count] = await productModuleService.listAndCountProducts()
+
+  console.log(`You have ${count} product(s)`)
 }
 ```
 
-Then, export the translations in `src/admin/i18n/index.ts`:
+The function receives as a parameter an object having a `container` property, which is an instance of the Medusa Container. Use it to resolve resources in your Medusa application.
+
+---
+
+## How to Run Custom CLI Script?
+
+To run the custom CLI script, run the `exec` command:
+
+```bash
+npx medusa exec ./src/scripts/my-script.ts
+```
+
+---
+
+## Custom CLI Script Arguments
+
+Your script can accept arguments from the command line. Arguments are passed to the function's object parameter in the `args` property.
+
+For example:
 
 ```ts
-import en from "./json/en.json" with { type: "json" }
+import { ExecArgs } from "@medusajs/framework/types"
 
-export default {
-  en: {
-    translation: en,
-  },
+export default async function myScript ({
+  args
+}: ExecArgs) {
+  console.log(`The arguments you passed: ${args}`)
 }
 ```
 
-Finally, use translations in your admin widgets and routes using the `useTranslation` hook:
+Then, pass the arguments in the `exec` command after the file path:
 
-```tsx
-import { defineWidgetConfig } from "@medusajs/admin-sdk"
-import { Button, Container, Heading } from "@medusajs/ui"
-import { useTranslation } from "react-i18next"
-
-const ProductWidget = () => {
-  const { t } = useTranslation()
-  return (
-    <Container className="p-0">
-      <div className="flex items-center justify-between px-6 py-4">
-        <Heading level="h2">{t("brands.title")}</Heading>
-        <p>{t("brands.description")}</p>
-      </div>
-      <div className="flex justify-end px-6 py-4">
-        <Button variant="primary">{t("done")}</Button>
-      </div>
-    </Container>
-  )
-}
-
-export const config = defineWidgetConfig({
-  zone: "product.details.before",
-})
-
-export default ProductWidget
+```bash
+npx medusa exec ./src/scripts/my-script.ts arg1 arg2
 ```
-
-Learn more about translating admin extensions in the [Translate Admin Customizations](https://docs.medusajs.com/learn/fundamentals/admin/translations) documentation.
