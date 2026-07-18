@@ -1,33 +1,58 @@
-# Admin Customizations
+# Admin Customizations Translations
 
-You can extend the Medusa Admin to add widgets and new pages. Your customizations interact with API routes to provide merchants with custom functionalities.
+The Medusa Admin dashboard supports multiple languages for its interface. Medusa uses [react-i18next](https://react.i18next.com/) to manage translations in the admin dashboard.
 
-> Learn more about Admin Extensions in [this documentation](https://docs.medusajs.com/learn/fundamentals/admin).
+To add translations, create JSON translation files for each language under the `src/admin/i18n/json` directory. For example, create the `src/admin/i18n/json/en.json` file with the following content:
 
-## Example: Create a Widget
+```json
+{
+  "brands": {
+    "title": "Brands",
+    "description": "Manage your product brands"
+  },
+  "done": "Done"
+}
+```
 
-A widget is a React component that can be injected into an existing page in the admin dashboard.
+Then, export the translations in `src/admin/i18n/index.ts`:
 
-For example, create the file `src/admin/widgets/product-widget.tsx` with the following content:
+```ts
+import en from "./json/en.json" with { type: "json" }
 
-```tsx title="src/admin/widgets/product-widget.tsx"
+export default {
+  en: {
+    translation: en,
+  },
+}
+```
+
+Finally, use translations in your admin widgets and routes using the `useTranslation` hook:
+
+```tsx
 import { defineWidgetConfig } from "@medusajs/admin-sdk"
+import { Button, Container, Heading } from "@medusajs/ui"
+import { useTranslation } from "react-i18next"
 
-// The widget
 const ProductWidget = () => {
+  const { t } = useTranslation()
   return (
-    <div>
-      <h2>Product Widget</h2>
-    </div>
+    <Container className="p-0">
+      <div className="flex items-center justify-between px-6 py-4">
+        <Heading level="h2">{t("brands.title")}</Heading>
+        <p>{t("brands.description")}</p>
+      </div>
+      <div className="flex justify-end px-6 py-4">
+        <Button variant="primary">{t("done")}</Button>
+      </div>
+    </Container>
   )
 }
 
-// The widget's configurations
 export const config = defineWidgetConfig({
-  zone: "product.details.after",
+  zone: "product.details.before",
 })
 
 export default ProductWidget
 ```
 
-This inserts a widget with the text “Product Widget” at the end of a product’s details page.
+Learn more about translating admin extensions in the [Translate Admin Customizations](https://docs.medusajs.com/learn/fundamentals/admin/translations) documentation.
