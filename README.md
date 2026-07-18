@@ -1,29 +1,33 @@
-# Integration Tests
+# Admin Customizations
 
-The `medusa-test-utils` package provides utility functions to create integration tests for your API routes and workflows.
+You can extend the Medusa Admin to add widgets and new pages. Your customizations interact with API routes to provide merchants with custom functionalities.
 
-For example:
+> Learn more about Admin Extensions in [this documentation](https://docs.medusajs.com/learn/fundamentals/admin).
 
-```ts
-import { medusaIntegrationTestRunner } from "medusa-test-utils"
+## Example: Create a Widget
 
-medusaIntegrationTestRunner({
-  testSuite: ({ api, getContainer }) => {
-    describe("Custom endpoints", () => {
-      describe("GET /store/custom", () => {
-        it("returns correct message", async () => {
-          const response = await api.get(
-            `/store/custom`
-          )
-  
-          expect(response.status).toEqual(200)
-          expect(response.data).toHaveProperty("message")
-          expect(response.data.message).toEqual("Hello, World!")
-        })
-      })
-    })
-  }
+A widget is a React component that can be injected into an existing page in the admin dashboard.
+
+For example, create the file `src/admin/widgets/product-widget.tsx` with the following content:
+
+```tsx title="src/admin/widgets/product-widget.tsx"
+import { defineWidgetConfig } from "@medusajs/admin-sdk"
+
+// The widget
+const ProductWidget = () => {
+  return (
+    <div>
+      <h2>Product Widget</h2>
+    </div>
+  )
+}
+
+// The widget's configurations
+export const config = defineWidgetConfig({
+  zone: "product.details.after",
 })
+
+export default ProductWidget
 ```
 
-Learn more in [this documentation](https://docs.medusajs.com/learn/debugging-and-testing/testing-tools/integration-tests).
+This inserts a widget with the text “Product Widget” at the end of a product’s details page.
